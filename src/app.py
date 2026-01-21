@@ -273,9 +273,9 @@ else:
                 # Show answer
                 st.markdown(message["content"])
                 
-                # Show chart if available
-                if message.get("chart") is not None:
-                    st.plotly_chart(message["chart"], use_container_width=True)
+                # Show image if available (from PandasAI)
+                if message.get("image_path"):
+                    st.image(message["image_path"])
                 
                 # Show result dataframe if available
                 if message.get("result_df") is not None and not message["result_df"].empty:
@@ -304,8 +304,9 @@ else:
             if result["success"]:
                 st.markdown(result["answer"])
                 
-                if result["chart"] is not None:
-                    st.plotly_chart(result["chart"], use_container_width=True)
+                # Show image if available
+                if result.get("image_path"):
+                    st.image(result["image_path"])
                 
                 if result["result_df"] is not None and not result["result_df"].empty:
                     with st.expander("📊 View Data Table"):
@@ -318,8 +319,8 @@ else:
                 "role": "assistant",
                 "content": result["answer"],
                 "plan": result.get("plan_display"),
-                "chart": result.get("chart"),
-                "result_df": result.get("result_df")
+                "result_df": result.get("result_df"),
+                "image_path": result.get("image_path")
             })
         
         st.rerun()
@@ -345,9 +346,9 @@ else:
             if result["success"]:
                 st.markdown(result["answer"])
                 
-                # Show chart if generated
-                if result["chart"] is not None:
-                    st.plotly_chart(result["chart"], use_container_width=True)
+                # Show image if available
+                if result.get("image_path"):
+                    st.image(result["image_path"])
                 
                 # Show result data if available
                 if result["result_df"] is not None and not result["result_df"].empty:
@@ -361,8 +362,8 @@ else:
                 "role": "assistant",
                 "content": result["answer"],
                 "plan": result.get("plan_display"),
-                "chart": result.get("chart"),
-                "result_df": result.get("result_df")
+                "result_df": result.get("result_df"),
+                "image_path": result.get("image_path")
             })
 
 # Footer
