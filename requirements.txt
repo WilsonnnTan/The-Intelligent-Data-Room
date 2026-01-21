@@ -1,8 +1,5 @@
-pandasai[google-ai]
+pandasai
 streamlit
-plotly
 openpyxl
 python-dotenv
-pandasai-litellm
-litellm
 openai
