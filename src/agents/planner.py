@@ -54,17 +54,7 @@ class PlannerAgent:
             },
             "chart_type": {
                 "type": ["string", "null"],
-                "enum": [
-                    "bar",
-                    "line",
-                    "pie",
-                    "scatter",
-                    "horizontal_bar",
-                    "histogram",
-                    "area",
-                    "count",
-                    None
-                ]
+                "description": "Use exactly what the user asks for: bar, bar_chart, line, line_chart, pie, pie_chart, scatter, scatter_plot, horizontal_bar, histogram, area, box, heatmap, count, or null if no visualization needed"
             },
             "columns_to_use": {
                 "type": "array",
@@ -93,14 +83,19 @@ IMPORTANT RULES:
 4. Create a step-by-step plan that an executor can follow
 5. Determine if visualization is needed and what type
 
-CHART TYPE GUIDELINES:
-- Use "bar" for comparing categories or showing totals
-- Use "horizontal_bar" for ranking (top N) or when labels are long
-- Use "line" for trends over time or continuous data
-- Use "pie" for showing proportions/percentages
-- Use "scatter" for correlations between two numeric variables
-- Use "histogram" for distributions
-- Use "count" for counting occurrences of categories
+CHART TYPE - USE EXACTLY WHAT THE USER ASKS FOR:
+- If user says "bar chart" → use "bar_chart" or "bar"
+- If user says "line chart" → use "line_chart" or "line"  
+- If user says "pie chart" → use "pie_chart" or "pie"
+- If user says "scatter plot" or "scatter_plot" → use "scatter_plot"
+- If user says "scatter" → use "scatter"
+- If user says "horizontal bar" → use "horizontal_bar"
+- If user says "histogram" → use "histogram"
+- If user says "area chart" → use "area"
+- If user says "box plot" → use "box"
+- If user says "heatmap" → use "heatmap"
+- If user says "count" → use "count"
+- Match the user's exact terminology as closely as possible
 
 OUTPUT CONSTRAINTS (MANDATORY):
 - You MUST return a single JSON object
