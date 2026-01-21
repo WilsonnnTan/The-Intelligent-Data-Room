@@ -6,10 +6,13 @@ from utils.memory import ConversationMemory
 from utils.data_loader import DataLoader
 
 from .planner import PlannerAgent
+from .executor import ExecutorAgent 
+
 
 class AgentOrchestrator():
     def __init__(self):
         self.planner = PlannerAgent()
+        self.executor = ExecutorAgent()
 
         self.data_loader = DataLoader()
         self.memory = ConversationMemory(max_messages=5)
@@ -53,7 +56,8 @@ class AgentOrchestrator():
             self.memory.set_dataframe_info(info)
             self.memory.set_data_schema(schema)
 
-            # TODO: Pass df to executor agent
+            # Pass df to executor agent
+            self.executor.set_dataframe(df)
 
         return success, msg
     
@@ -78,8 +82,8 @@ class AgentOrchestrator():
             "success": False,
             "answer": "",
             "plan_display": "",
-            "chart": None,
             "result_df": None,
+            "image_path": None,
             "error": None
         }
         
@@ -104,16 +108,22 @@ class AgentOrchestrator():
             self.last_plan = plan
             result["plan_display"] = self.planner.format_plan_display(plan)
             
-
-            # Step 2: Execute plan with Executor Agent (TODO: implement full execution)
-            # Set success and answer from the plan
+            # Step 2: Execute plan with Executor Agent
+            answer, result_df, image_path = self.executor.execute(
+                plan=plan,
+                df=self.current_df,
+                question=question
+            )
+            
             result["success"] = True
-            result["answer"] = "integrate later for second agent"
+            result["answer"] = answer
+            result["result_df"] = result_df
+            result["image_path"] = image_path
 
             # Update Memory      
             self.memory.add_message(
                 "assistant", 
-                content=result["plan_display"],
+                content=answer,
             )
 
         except Exception as e:
@@ -161,4 +171,4 @@ class AgentOrchestrator():
         self.current_df = None
         self.last_plan = None
         self.memory.clear()
-        self.executor.pandas_agent = None
+        self.executor.smart_df = None
