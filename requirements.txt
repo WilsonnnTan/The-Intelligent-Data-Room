@@ -1,0 +1,7 @@
+pandasai[google-ai]
+streamlit
+plotly
+openpyxl
+python-dotenv
+google-generativeai
+pandasai-litellm
