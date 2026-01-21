@@ -5,10 +5,13 @@ from typing import Optional, Tuple, Dict, Any
 from utils.memory import ConversationMemory
 from utils.data_loader import DataLoader
 
+from .planner import PlannerAgent
 
 class AgentOrchestrator():
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY")
+
+        self.planner = PlannerAgent(self.api_key)
 
         self.data_loader = DataLoader()
         self.memory = ConversationMemory(max_message=5)
@@ -92,10 +95,25 @@ class AgentOrchestrator():
             
             # TODO:
             # Step 1: Get plan from Planner Agent
-            # Step 2: Execute plan with Executor Agent
-            # Update Memory            
+            schema = self.data_loader.get_schema(self.current_df)
+            context = self.memory.get_context()
 
-            
+            plan = self.planner.create_plan(
+                question=question,
+                data_schema=schema,
+                conversation_context=context
+            )
+
+            self.last_plan = plan
+            result["plan_display"] = self.planner.format_plan_display(plan)
+
+            # Step 2: Execute plan with Executor Agent
+            # Update Memory      
+            self.memory.add_message(
+                "assistant", 
+                execution_plan=result["plan_display"],
+            )
+
         except Exception as e:
             result["error"] = f"Error processing query: {str(e)}"
             result["answer"] = result["error"]
