@@ -1,14 +1,14 @@
 """
 Planner Agent Module
 Analyzes user questions and create plan.
-Uses Google Gemini for planning.
+Uses Google Gemini via LiteLLM proxy.
 """
 
 import os
 import json
-import google.generativeai as genai
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
+import openai
 
 
 @dataclass
@@ -82,7 +82,9 @@ class PlannerAgent:
         "additionalProperties": False
     }
 
-    SYSTEM_PROMPT = """You are a Data Analysis Planner Agent. Your role is to analyze the user's question about their data and create a clear, structured execution plan.
+
+    SYSTEM_PROMPT = f"""
+You are a Data Analysis Planner Agent. Your role is to analyze the user's question about their data and create a clear, structured execution plan.
 
 IMPORTANT RULES:
 1. Analyze the user's natural language question carefully
@@ -100,27 +102,42 @@ CHART TYPE GUIDELINES:
 - Use "histogram" for distributions
 - Use "count" for counting occurrences of categories
 
-CONTEXT HANDLING:
-- If the user says "show that on a chart" or refers to previous results, use the conversation history
-- If the user mentions "top 5" or "top 10", include proper sorting in steps
-- If the user asks to compare, identify the comparison groups
+OUTPUT CONSTRAINTS (MANDATORY):
+- You MUST return a single JSON object
+- The JSON MUST strictly follow this schema
+- Do NOT include explanations, markdown, or comments
+- Do NOT add extra fields
+- Use null where a value does not apply
 
-Always ensure your response is valid JSON and nothing else."""
+SCHEMA:
+{json.dumps(EXECUTION_PLAN_SCHEMA, indent=2)}
 
-    def __init__(self, api_key: Optional[str] = None):
+Before responding, validate your output against the schema and fix any violations.
+"""
+
+
+    def __init__(self):
         """
         Initialize the Planner Agent.
-        
-        Args:
-            api_key: Google Gemini API key
         """
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
+        self.api_key = os.getenv("LITELLM_API_KEY")
+        self.api_base = os.getenv(
+            "LITELLM_API_BASE",
+            "https://litellm.koboi2026.biz.id/v1"
+        )
+
         if not self.api_key:
-            raise ValueError("GEMINI_API_KEY not found in environment variables")
+            raise ValueError("LITELLM_API_KEY not found")
+
+        self.model = "gemini/gemini-2.0-flash"
         
-        genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-2.0-flash')
-    
+        # Initialize OpenAI client pointing to LiteLLM proxy
+        self.client = openai.OpenAI(
+            api_key=self.api_key,
+            base_url=self.api_base
+        )
+
+
     def create_plan(
         self, 
         question: str, 
@@ -162,19 +179,27 @@ Always ensure your response is valid JSON and nothing else."""
         full_prompt = "\n".join(prompt_parts)
         
         try:
-            # Generate the plan using Gemini (response json format)
-            response = self.model.generate_content(
-                [self.SYSTEM_PROMPT, full_prompt],
-                generation_config=genai.types.GenerationConfig(
-                    temperature=0.2,
-                    max_output_tokens=1024,
-                    response_mime_type="application/json",
-                    response_json_schema=self.EXECUTION_PLAN_SCHEMA
-                )
+            # Generate the plan using OpenAI client via LiteLLM proxy
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": self.SYSTEM_PROMPT
+                    },
+                    {
+                        "role": "user",
+                        "content": full_prompt
+                    }
+                ],
+                temperature=0.2,
+                max_tokens=1024,
+                response_format={"type": "json_object"}
             )
 
-            plan_data = json.loads(response.text) 
-            
+            raw_text = response.choices[0].message.content
+            plan_data = json.loads(raw_text)
+
             return ExecutionPlan(
                 goal=plan_data.get("goal", "Analyze the data"),
                 steps=plan_data.get("steps", ["Analyze the data"]),
@@ -183,7 +208,7 @@ Always ensure your response is valid JSON and nothing else."""
                 columns_to_use=plan_data.get("columns_to_use", []),
                 aggregation=plan_data.get("aggregation"),
                 filters=plan_data.get("filters"),
-                raw_response=response_text
+                raw_response=raw_text
             )
             
         except Exception as e:

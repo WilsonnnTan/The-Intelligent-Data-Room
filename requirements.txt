@@ -3,5 +3,6 @@ streamlit
 plotly
 openpyxl
 python-dotenv
-google-generativeai
 pandasai-litellm
+litellm
+openai
