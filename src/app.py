@@ -211,15 +211,31 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### Sample Prompts")
     
-    sample_prompts = [
-        "Create a bar chart showing total Sales by Category",
-        "What are the top 5 products by profit?",
-        "Show the sales trend over time",
-        "Which region has the highest sales?",
-        "Is there a correlation between Discount and Profit?"
+    # Easy Prompts
+    st.markdown("**Easy**")
+    easy_prompts = [
+        "Create a bar chart showing the total Sales and Profit for each Category",
+        "Visualize the distribution of total Sales across different Regions using a pie chart",
+        "Which Customer Segment places the most orders? Show this with a count plot",
+        "Identify the Top 5 States by total Sales using a horizontal bar chart",
+        "How has the total Profit changed over the Years (2018–2021)? Use a line chart",
     ]
     
-    for prompt in sample_prompts:
+    for prompt in easy_prompts:
+        if st.button(prompt, key=f"prompt_{hash(prompt)}", use_container_width=True):
+            st.session_state.pending_prompt = prompt
+    
+    # Medium Prompts
+    st.markdown("**Medium**")
+    medium_prompts = [
+        "Which Sub-Categories are currently unprofitable on average? Visualize with a bar chart",
+        "Compare the Sales Trend of different Ship Modes over time using a multi-line chart",
+        "List the Top 10 Customers by total Profit and display them in a bar chart",
+        "Is there a correlation between Discount and Profit? Create a scatter plot",
+        "Calculate and chart the Return Rate for each Region",
+    ]
+    
+    for prompt in medium_prompts:
         if st.button(prompt, key=f"prompt_{hash(prompt)}", use_container_width=True):
             st.session_state.pending_prompt = prompt
 
