@@ -1,5 +1,4 @@
 pandasai
 streamlit
-openpyxl
 python-dotenv
 openai
