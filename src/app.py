@@ -249,9 +249,9 @@ with st.expander("How it works - Multi-Agent System"):
         st.markdown("""
         #### Agent 2: The Executor  
         - Follows the execution plan
-        - Uses PandasAI + Gemini to write Python code
+        - Uses PandasAI + Gemini to generate chart
         - Executes queries on your data
-        - Generates charts with Plotly
+        - Generates charts with pandasAI
         """)
 
 # Check if data is loaded
